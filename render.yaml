@@ -4,8 +4,9 @@ services:
     name: auth-backend-service
     env: node
     plan: free
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm start
+    rootDir: backend
+    buildCommand: npm install --production
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -30,7 +31,7 @@ services:
     env: docker
     plan: free
     repo: https://github.com/render-examples/mongodb
-    dockerContext: .
+    dockerContext: ./backend
     envVars:
       - key: MONGO_INITDB_ROOT_USERNAME
         value: admin
@@ -39,13 +40,14 @@ services:
       - key: MONGO_INITDB_DATABASE
         value: auth-service
 
-  # Frontend Service (if needed)
+  # Frontend Service
   - type: web
     name: auth-frontend
     env: static
     plan: free
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         value: https://auth-backend-service.onrender.com/api/v1
