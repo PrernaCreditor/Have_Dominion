@@ -1,0 +1,51 @@
+services:
+  # Backend Service
+  - type: web
+    name: auth-backend-service
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: MONGODB_URL
+        fromDatabase:
+          name: auth-mongodb
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET
+        generateValue: true
+      - key: LOG_LEVEL
+        value: info
+
+  # MongoDB Database
+  - type: pserv
+    name: auth-mongodb
+    env: docker
+    plan: free
+    repo: https://github.com/render-examples/mongodb
+    dockerContext: .
+    envVars:
+      - key: MONGO_INITDB_ROOT_USERNAME
+        value: admin
+      - key: MONGO_INITDB_ROOT_PASSWORD
+        generateValue: true
+      - key: MONGO_INITDB_DATABASE
+        value: auth-service
+
+  # Frontend Service (if needed)
+  - type: web
+    name: auth-frontend
+    env: static
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://auth-backend-service.onrender.com/api/v1
