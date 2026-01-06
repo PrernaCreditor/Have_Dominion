@@ -17,9 +17,13 @@ const app = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+
+app.use(cors({
+  origin: ['https://universal-helpers-j1p7-p6jdjsxte-sakshi-anands-projects.vercel.app'],
+  credentials: true,
+}))
 app.use(morgan('combined', { stream: { write: (msg) => logger.info(msg.trim()) } }));
-app.use(express.json());
+app.use(express.json());  
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', async (req, res) => {
