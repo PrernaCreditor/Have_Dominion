@@ -21,9 +21,22 @@ const getAuthHeaders = () => {
 
 // Handle API responses
 const handleResponse = async (response) => {
-  const data = await response.json();
+  const contentType = response.headers.get('content-type');
+  let data;
+  
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    const text = await response.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(text || `HTTP error! status: ${response.status}`);
+    }
+  }
+  
   if (!response.ok) {
-    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    throw new Error(data.message || data.error || `HTTP error! status: ${response.status}`);
   }
   return data;
 };

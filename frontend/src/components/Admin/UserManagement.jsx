@@ -123,53 +123,7 @@ const UserManagement = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {users
-              .filter(user => {
-                console.log('=== Processing User ===');
-                console.log('Full user object:', user);
-                console.log('User name:', user.name, 'Type:', typeof user.name);
-                console.log('User email:', user.email, 'Type:', typeof user.email);
-                
-                const blockedEmails = [
-                  'john@example.com',
-                  'jane@example.com', 
-                  'bob@example.com',
-                  'alice@example.com',
-                  'charlie@example.com'
-                ];
-                const blockedNames = [
-                  'John Doe',
-                  'Jane Smith',
-                  'Bob Johnson', 
-                  'Alice Brown',
-                  'Charlie Wilson'
-                ];
-                
-                console.log('Blocked emails:', blockedEmails);
-                console.log('Blocked names:', blockedNames);
-                
-                const userEmail = user.email?.toLowerCase().trim();
-                const userName = user.name?.trim();
-                
-                const isBlockedByEmail = blockedEmails.includes(userEmail);
-                const isBlockedByName = blockedNames.includes(userName);
-                const isBlocked = isBlockedByEmail || isBlockedByName;
-                
-                console.log('Normalized email:', userEmail);
-                console.log('Normalized name:', userName);
-                console.log('Is blocked by email:', isBlockedByEmail);
-                console.log('Is blocked by name:', isBlockedByName);
-                console.log('Final isBlocked:', isBlocked);
-                
-                if (isBlocked) {
-                  console.log('❌ FILTERING OUT user:', { name: user.name, email: user.email });
-                  return false;
-                }
-                
-                console.log('✅ KEEPING user:', { name: user.name, email: user.email });
-                return true;
-              })
-              .map((user) => (
+            {users.map((user) => (
               <tr key={user._id || user.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {user.name}

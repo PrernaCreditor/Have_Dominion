@@ -5,7 +5,19 @@ import UserManagement from '../../components/Admin/UserManagement';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({});
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalAdmins: 0,
+    activeUsers: 0,
+    inactiveUsers: 0,
+    userGrowth: '+0%',
+    sessionGrowth: '+0%',
+    revenue: 0,
+    revenueGrowth: '+0%',
+    supportTickets: 0,
+    ticketGrowth: '+0%',
+    activeSessions: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -18,9 +30,11 @@ const AdminDashboard = () => {
   const fetchStatistics = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await adminService.getStatistics();
       setStats(response.data || {});
     } catch (err) {
+      console.error('Statistics fetch error:', err);
       setError(err.message || 'Failed to fetch statistics');
     } finally {
       setLoading(false);
@@ -43,7 +57,7 @@ const AdminDashboard = () => {
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
           <div className="text-red-800">{error}</div>
           <button 
-            onClick={fetchDashboardData}
+            onClick={fetchStatistics}
             className="mt-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
           >
             Retry
@@ -91,6 +105,29 @@ const AdminDashboard = () => {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-8">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-sm font-medium text-gray-500">Total Users</h3>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+              <p className="text-sm text-green-600">{stats.userGrowth}</p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-sm font-medium text-gray-500">Active Users</h3>
+              <p className="text-2xl font-bold text-gray-900">{stats.activeUsers}</p>
+              <p className="text-sm text-gray-500">{stats.inactiveUsers} inactive</p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-sm font-medium text-gray-500">Total Admins</h3>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalAdmins}</p>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-sm font-medium text-gray-500">Active Sessions</h3>
+              <p className="text-2xl font-bold text-gray-900">{stats.activeSessions}</p>
+              <p className="text-sm text-green-600">{stats.sessionGrowth}</p>
+            </div>
+          </div>
+
           {/* System Health and Recent Activity */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
