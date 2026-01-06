@@ -37,7 +37,8 @@ function Signup() {
         }
         
         try {
-            const response = await api.post("/auth/user/signup", signupInfo);
+            // Use relative path so axios baseURL (/api/v1) is applied
+            const response = await api.post("auth/user/signup", signupInfo);
             const result = response.data;
             const { success, message, error } = result;
             if (success) {
