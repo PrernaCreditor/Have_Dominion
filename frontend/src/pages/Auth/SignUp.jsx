@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify';
 import { handleError, handleSuccess } from '../../lib/utils';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+import api from '../../api/axios';
 
 function Signup() {
 
@@ -38,15 +37,8 @@ function Signup() {
         }
         
         try {
-            const url = `${API_BASE}/auth/user/signup`;
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(signupInfo)
-            });
-            const result = await response.json();
+            const response = await api.post("/auth/user/signup", signupInfo);
+            const result = response.data;
             const { success, message, error } = result;
             if (success) {
                 handleSuccess(message);
