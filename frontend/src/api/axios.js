@@ -1,15 +1,11 @@
 import axios from "axios";
 
-// Normalize API base to keep /api/v1 prefix when joining relative paths
-const apiBase =
-  (import.meta.env.VITE_API_BASE_URL || "https://universal-helpers-1.onrender.com/api/v1").replace(
-    /\/$/,
-    ""
-  );
-
 const api = axios.create({
-  baseURL: `${apiBase}/`,
+  baseURL: `${import.meta.env.VITE_API_BASE_URL || "https://have-dominion.onrender.com"}/api/v1`,
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 export default api;
