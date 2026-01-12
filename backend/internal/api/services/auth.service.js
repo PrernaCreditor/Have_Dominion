@@ -43,7 +43,7 @@ class AuthService {
 
   async signupAdmin(name, email, password, adminSecret) {
     try {
-      const expectedSecret = process.env.ADMIN_SECRET_KEY || process.env.ADMIN_SECRET || 'admin-secret-key';
+      const expectedSecret = process.env.ADMIN_SECRET || 'admin-secret-key';
       if (adminSecret !== expectedSecret) {
         throw new AppError('Invalid admin secret', 403, 'INVALID_ADMIN_SECRET');
       }

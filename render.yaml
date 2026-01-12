@@ -1,7 +1,7 @@
 services:
   # Backend Service
   - type: web
-    name: universal-helpers-backend
+    name: auth-backend-service
     env: node
     plan: free
     rootDir: backend
@@ -13,19 +13,37 @@ services:
       - key: PORT
         value: 8080
       - key: MONGODB_URL
-        value: mongodb+srv://prerna_db_user:debbiewebsite@cluster0.jjdd6ok.mongodb.net/?appName=Cluster0
+        fromDatabase:
+          name: auth-mongodb
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
-      - key: ADMIN_SECRET_KEY
+      - key: ADMIN_JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET
         generateValue: true
       - key: LOG_LEVEL
         value: info
       - key: CORS_ORIGINS
-        value: https://universal-helpers-frontend.onrender.com,https://universal-helpers-frontend.onrender.com,http://localhost:5173,http://localhost:3000
+        value: http://localhost:5173,http://localhost:3000,https://universal-helpers-j1p7-git-main-sakshi-anands-projects.vercel.app,https://universal-helpers-j1p7.vercel.app
+
+  # MongoDB Database
+  - type: pserv
+    name: auth-mongodb
+    env: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile.mongo
+    envVars:
+      - key: MONGO_INITDB_ROOT_USERNAME
+        value: admin
+      - key: MONGO_INITDB_ROOT_PASSWORD
+        generateValue: true
+      - key: MONGO_INITDB_DATABASE
+        value: auth-service
 
   # Frontend Service
   - type: web
-    name: universal-helpers-frontend
+    name: auth-frontend
     env: static
     plan: free
     rootDir: frontend
@@ -33,4 +51,4 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://universal-helpers-backend.onrender.com/api/v1
+        value: https://universal-helpers-1.onrender.com/api/v1

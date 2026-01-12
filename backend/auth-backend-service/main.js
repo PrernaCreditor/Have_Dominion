@@ -27,7 +27,6 @@ const allowedOrigins = process.env.CORS_ORIGINS
   : [
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://have-dominion.onrender.com",
       "https://have-dominion-1.onrender.com",
       "https://universal-helpers-j1p7.vercel.app",
       "https://universal-helpers-1.onrender.com",
