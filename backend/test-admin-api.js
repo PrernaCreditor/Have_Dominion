@@ -24,8 +24,8 @@ const testAdminAPI = async () => {
       },
       body: JSON.stringify({
         name: 'Test Admin',
-        email: 'admin@gmail.com',
-        password: 'test123',
+        email: 'test@ad.com',
+        password: '89898989',
         adminSecret: 'admin-secret-key'
       }),
     });
