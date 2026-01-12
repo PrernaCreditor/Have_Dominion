@@ -32,6 +32,9 @@ function Login() {
             const result = await login(email, password);
             if (result.success) {
                 handleSuccess('Login successful!');
+                // Let the AuthContext handle the redirect
+                // The login function will return { success: true, isAdmin: userResp.role === 'admin' }
+                // and the AuthContext will handle navigation
             } else {
                 handleError(result.error || 'Login failed');
             }
