@@ -1,126 +1,115 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const normalizeUser = (user) => {
-    if (!user) return null;
-    const role = (user.role || '').toLowerCase();
-    const redirectUrl = role === 'admin' ? '/admin/dashboard' : '/dashboard';
-    return { ...user, role, redirectUrl };
-  };
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
-  // Check for saved user session on initial load
+  /* ================================
+     Restore auth on page refresh
+     ================================ */
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Try to validate current session with server
-        const response = await api.get('/auth/validate-session');
-        if (response.data.success && response.data.user) {
-          setUser(normalizeUser(response.data.user));
-        }
-      } catch (error) {
-        // No valid session, clear any local data
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-      } finally {
-        setLoading(false);
-      }
-    };
+    const storedUser =
+      sessionStorage.getItem('user') || localStorage.getItem('user');
 
-    checkAuth();
+    if (!storedUser) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+
+      if (parsedUser.token) {
+        api.defaults.headers.common.Authorization =
+          `Bearer ${parsedUser.token}`;
+      }
+    } catch {
+      sessionStorage.removeItem('user');
+      localStorage.removeItem('user');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const callLogin = async (path, email, password) => {
-    try {
-      const response = await api.post(path, { email, password });
-      return { ...response.data, ok: true, status: response.status };
-    } catch (err) {
-      const message =
-        err.response?.data?.error?.message ||
-        err.response?.data?.message ||
-        err.message ||
-        'Login failed';
-      return { success: false, message, ok: false, status: err.response?.status };
-    }
-  };
-
-  const login = async (email, password, rememberMe = false) => {
+  /* ================================
+     Login (explicit role-based)
+     ================================ */
+  const login = async (email, password, role = 'user', rememberMe = false) => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      // Try user login first, then fall back to admin login for admin accounts
-      let data = await callLogin('auth/user/login', email, password);
-      if (!data.success) {
-        const adminAttempt = await callLogin('auth/admin/login', email, password);
-        data = adminAttempt;
+      const path =
+        role === 'admin'
+          ? 'auth/admin/login'
+          : 'auth/user/login';
+
+      const response = await api.post(path, { email, password });
+      const { user: userResp, token } = response.data.data;
+
+      if (!userResp || !token) {
+        throw new Error('Invalid login response');
       }
 
-      if (!data.success) {
-        throw new Error(data.message || 'Login failed');
-      }
-
-      const { user: userResp, token } = data.data || {};
-      if (!userResp || !userResp.role) {
-        throw new Error('Invalid response from server');
-      }
-      const role = (userResp.role || '').toLowerCase();
-      const redirectUrl = role === 'admin' ? '/admin/dashboard' : '/dashboard';
-
-      const userData = {
+      const normalizedUser = {
         id: userResp._id || userResp.id,
         email: userResp.email,
         name: userResp.name,
-        role,
+        role: userResp.role.toLowerCase(),
         token,
-        redirectUrl
+        redirectUrl:
+          userResp.role.toLowerCase() === 'admin'
+            ? '/admin/dashboard'
+            : '/dashboard',
       };
 
-      // Clear any existing auth data first
-      localStorage.removeItem('user');
-      sessionStorage.removeItem('user');
-      
-      // Set user in state
-      setUser(userData);
-      
-      // Store user data in sessionStorage only (temporary)
-      if (!rememberMe) {
-        sessionStorage.setItem('user', JSON.stringify(userData));
+      // Save user
+      setUser(normalizedUser);
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+
+      if (rememberMe) {
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(normalizedUser));
       }
-      
-      // Set token in API headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Redirect based on role
-      navigate(redirectUrl, { replace: true });
-      return { success: true, isAdmin: userResp.role === 'admin' };
+
+      navigate(normalizedUser.redirectUrl, { replace: true });
+      return { success: true };
     } catch (err) {
-      setError(err.message || 'Login failed. Please try again.');
-      return { success: false, error: err.message };
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        'Login failed';
+
+      setError(message);
+      return { success: false, error: message };
     } finally {
       setLoading(false);
     }
   };
 
+  /* ================================
+     Logout
+     ================================ */
   const logout = async () => {
     try {
-      // Call server logout endpoint to clear session
       await api.post('/auth/logout');
-    } catch (error) {
-      // Continue with local logout even if server call fails
+    } catch {
+      // ignore backend failure
     } finally {
       setUser(null);
-      localStorage.removeItem('user');
       sessionStorage.removeItem('user');
-      delete api.defaults.headers.common['Authorization'];
+      localStorage.removeItem('user');
+      delete api.defaults.headers.common.Authorization;
+      navigate('/login', { replace: true });
     }
   };
 
@@ -136,10 +125,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  <AuthContext.Provider value={value}>
+    {children}
+  </AuthContext.Provider>
+);
+
 };
 
 export const useAuth = () => {

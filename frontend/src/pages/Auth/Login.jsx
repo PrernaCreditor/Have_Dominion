@@ -16,7 +16,6 @@ function Login() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        console.log(name, value);
         const copyLoginInfo = { ...loginInfo };
         copyLoginInfo[name] = value;
         setLoginInfo(copyLoginInfo);
@@ -29,7 +28,7 @@ function Login() {
             return handleError('email and password are required')
         }
         try {
-            const result = await login(email, password);
+            const result = await login(email, password, 'user');
             if (result.success) {
                 handleSuccess('Login successful!');
             } else {
@@ -95,6 +94,14 @@ function Login() {
                     >
                         Sign Up
                     </Link>
+
+                    <Link
+                     to="/admin/login"
+                     className="block font-semibold text-center  text-blue-950 mt-4"
+                    >
+                       Login as Admin
+                    </Link>
+
                 </div>
             </div>
             <ToastContainer />
