@@ -1,5 +1,6 @@
 // Align base URL with axios client default to avoid mixed-content / wrong host errors
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1').replace(/\/$/, '');
+const apiBase = import.meta.env.VITE_API_BASE_URL || "https://have-dominion.onrender.com";
+const API_BASE = `${apiBase}/api/v1`;
 
 // Get auth token from localStorage or sessionStorage
 const getAuthToken = () => {
@@ -196,11 +197,20 @@ export const adminService = {
 
   // Get statistics
   async getStatistics() {
-    const response = await fetch(`${API_BASE}/admin/statistics`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    });
-    
-    return handleResponse(response);
+    try {
+      const response = await fetch(`${API_BASE}/admin/statistics`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Statistics fetch error:', error);
+      // If it's a network error (ERR_BLOCKED_BY_CLIENT, CORS, etc.), provide helpful message
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Unable to connect to server. Please check your connection or disable browser extensions that might be blocking requests.');
+      }
+      throw error;
+    }
   }
 };

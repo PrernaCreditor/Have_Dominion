@@ -85,13 +85,16 @@ class AuthService {
 
   async loginUser(email, password) {
     try {
+      // Email is already normalized by validation middleware
       const user = await User.findOne({ email, role: 'user' });
       if (!user) {
+        logger.warn('Login attempt failed - user not found', { email });
         throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
       }
 
       const isPasswordValid = await user.comparePassword(password);
       if (!isPasswordValid) {
+        logger.warn('Login attempt failed - invalid password', { email });
         throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
       }
 
@@ -127,13 +130,16 @@ class AuthService {
 
   async loginAdmin(email, password) {
     try {
+      // Email is already normalized by validation middleware
       const user = await User.findOne({ email, role: 'admin' });
       if (!user) {
+        logger.warn('Admin login attempt failed - user not found', { email });
         throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
       }
 
       const isPasswordValid = await user.comparePassword(password);
       if (!isPasswordValid) {
+        logger.warn('Login attempt failed - invalid password', { email });
         throw new AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
       }
 

@@ -44,6 +44,11 @@ const validate = (data, schemaName) => {
     throw new AppError(messages, 400, 'VALIDATION_ERROR');
   }
 
+  // Normalize email to lowercase for consistency
+  if (value.email) {
+    value.email = value.email.toLowerCase().trim();
+  }
+
   return value;
 };
 

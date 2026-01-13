@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
+      setError(null); // Clear any previous errors when restoring user
 
       if (parsedUser.token) {
         api.defaults.headers.common.Authorization =
@@ -34,6 +35,7 @@ export const AuthProvider = ({ children }) => {
     } catch {
       sessionStorage.removeItem('user');
       localStorage.removeItem('user');
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,10 @@ export const AuthProvider = ({ children }) => {
           ? 'auth/admin/login'
           : 'auth/user/login';
 
+      console.log('Attempting login:', { email, role, path });
       const response = await api.post(path, { email, password });
+      console.log('Login response:', response.data);
+      
       const { user: userResp, token } = response.data.data;
 
       if (!userResp || !token) {
@@ -73,6 +78,7 @@ export const AuthProvider = ({ children }) => {
 
       // Save user
       setUser(normalizedUser);
+      setError(null); // Clear any previous errors on successful login
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
 
       if (rememberMe) {
@@ -84,10 +90,24 @@ export const AuthProvider = ({ children }) => {
       navigate(normalizedUser.redirectUrl, { replace: true });
       return { success: true };
     } catch (err) {
-      const message =
+      console.error('Login error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        fullResponse: JSON.stringify(err.response?.data, null, 2),
+      });
+
+      let message =
+        err.response?.data?.error?.message ||
         err.response?.data?.message ||
         err.message ||
         'Login failed';
+
+      // Provide helpful hint if using admin email on user login
+      if (role === 'user' && email.toLowerCase().includes('admin')) {
+        message += '. Note: Admin accounts should use the Admin Login page.';
+      }
 
       setError(message);
       return { success: false, error: message };
@@ -106,6 +126,7 @@ export const AuthProvider = ({ children }) => {
       // ignore backend failure
     } finally {
       setUser(null);
+      setError(null); // Clear error on logout
       sessionStorage.removeItem('user');
       localStorage.removeItem('user');
       delete api.defaults.headers.common.Authorization;

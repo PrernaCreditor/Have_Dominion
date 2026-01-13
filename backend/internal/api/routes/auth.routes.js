@@ -24,6 +24,7 @@ router.post('/user/signup', async (req, res, next) => {
 // User Login
 router.post('/user/login', async (req, res, next) => {
   try {
+    logger.info('User login attempt', { email: req.body?.email, hasPassword: !!req.body?.password });
     const { email, password } = validate(req.body, 'userLogin');
     const result = await authService.loginUser(email, password);
 
@@ -34,6 +35,11 @@ router.post('/user/login', async (req, res, next) => {
       data: result,
     });
   } catch (error) {
+    logger.error('User login error in route', { 
+      error: error.message, 
+      statusCode: error.statusCode,
+      email: req.body?.email 
+    });
     next(error);
   }
 });
@@ -58,6 +64,7 @@ router.post('/admin/signup', async (req, res, next) => {
 // Admin Login
 router.post('/admin/login', async (req, res, next) => {
   try {
+    logger.info('Admin login attempt', { email: req.body?.email, hasPassword: !!req.body?.password });
     const { email, password } = validate(req.body, 'adminLogin');
     const result = await authService.loginAdmin(email, password);
 
@@ -68,6 +75,11 @@ router.post('/admin/login', async (req, res, next) => {
       data: result,
     });
   } catch (error) {
+    logger.error('Admin login error in route', { 
+      error: error.message, 
+      statusCode: error.statusCode,
+      email: req.body?.email 
+    });
     next(error);
   }
 });
