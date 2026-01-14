@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
+import api from '../../api/axios';
 
 export default function Contact() {
   const { user } = useAuth();
@@ -40,20 +41,14 @@ export default function Contact() {
     e.preventDefault();
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          service: formData.service,
-          message: formData.message,
-        }),
+      const response = await api.post('/contact', {
+        name: formData.name,
+        email: formData.email,
+        service: formData.service,
+        message: formData.message,
       });
 
-      const result = await response.json();
+      const result = response.data;
       
       if (result.success) {
         // Save service request to localStorage if user is logged in
